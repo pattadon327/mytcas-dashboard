@@ -2,7 +2,7 @@ import dash
 from dash import dcc, html, Input, Output, dash_table
 import pandas as pd
 import plotly.express as px
-
+import math
 # โหลดไฟล์ Excel
 df = pd.read_excel("AJ_Thana\myTCAS\mytcas-dashboard\coe_and_aie_with_major.xlsx")
 
@@ -11,8 +11,29 @@ df["ชื่อสาขา"] = df["ชื่อหลักสูตร"].appl
     lambda x: "วิศวกรรมปัญญาประดิษฐ์" if "ปัญญาประดิษฐ์" in str(x) else "วิศวกรรมคอมพิวเตอร์"
 )
 
-# หา min/max ค่าใช้จ่าย
-min_fee, max_fee = df['ค่าใช้จ่าย'].min(), df['ค่าใช้จ่าย'].max()
+# แปลงค่าใช้จ่ายเป็นตัวเลข
+df['ค่าใช้จ่าย'] = pd.to_numeric(df['ค่าใช้จ่าย'], errors='coerce')
+
+min_fee = int(df['ค่าใช้จ่าย'].min())
+true_max_fee = int(df['ค่าใช้จ่าย'].max())
+
+step = 1000
+max_fee = int(math.ceil(true_max_fee / step) * step)
+
+marks = {
+    min_fee: {
+        'label': f"{min_fee:,}",
+        'style': {'color': 'white'}
+    },
+    true_max_fee: {
+        'label': f"{true_max_fee:,}",
+        'style': {'color': 'white'}
+    }
+}
+
+
+if true_max_fee not in marks:
+    marks[true_max_fee] = {'label': f"{true_max_fee:,}", 'style': {'color': 'white'}}
 
 app = dash.Dash(__name__)
 app.title = "MyTCAS Dashboard"
@@ -24,9 +45,9 @@ app.css.append_css({
 
 # Style constants
 BASE_FONT = "'Poppins', sans-serif"
-PRIMARY_COLOR = "#001439"
-ACCENT_COLOR = "#EBF49A"
-BG_GRADIENT = "linear-gradient(135deg, #EBF49A 0%, #80deea 100%)"
+PRIMARY_COLOR = "#FFFFFF"
+ACCENT_COLOR = "#002443"
+BG_GRADIENT = "linear-gradient(135deg, #002443 100%, #002443 100%)"
 
 LABEL_STYLE = {
     'fontWeight': '450',
@@ -61,13 +82,25 @@ H2_STYLE = {
 # Layout
 app.layout = html.Div([
     html.Div([
-        html.H1("MyTCAS Dashboard", style=H2_STYLE)
+        html.H1("MyTCAS Dashboard", style={
+            'fontFamily': "'Poppins', 'Segoe UI', sans-serif",
+            'fontWeight': '600',
+            'fontSize': '36px',
+            'color': "#002443",
+            'letterSpacing': '1px',
+            'textShadow': '1px 1px 2px rgba(0,0,0,0.1)',
+            'textAlign': 'center',
+            'margin': '0',
+            "backgroundColor": "#FFFFFF",
+        })
     ], style={
         'background': BG_GRADIENT,
-        'padding': '30px 0',
-        'boxShadow': '0 4px 10px rgba(0,0,0,0.1)',
-        'marginBottom': '40px',
+        'padding': '15px 0',  
+        'boxShadow': '0 2px 6px rgba(0,0,0,0.1)',
+        'marginBottom': '20px', 
     }),
+
+
 
     html.Div([
         html.Div([
@@ -112,15 +145,18 @@ app.layout = html.Div([
 
     html.Div([
         html.Label("ค่าใช้จ่าย (บาท):", style=LABEL_STYLE),
-        dcc.RangeSlider(
-            id='fee-slider',
-            min=min_fee, max=max_fee,
-            step=1000,
-            value=[min_fee, max_fee],
-            marks={int(f): str(int(f)) for f in range(int(min_fee), int(max_fee)+1, 10000)},
-            tooltip={"placement": "bottom"},
-            updatemode='mouseup',
-        ),
+            dcc.RangeSlider(
+                id='fee-slider',
+                min=min_fee,
+                max=max_fee,
+                step=step,
+                value=[min_fee, max_fee],
+                marks=marks,  # ✅ ใช้เฉพาะ min/max
+                tooltip={"placement": "bottom"},
+                updatemode='mouseup',
+            ),
+
+
     ], style={'width': '90%', 'margin': '10px auto 40px auto'}),
 
     html.Div([
@@ -154,11 +190,11 @@ app.layout = html.Div([
                 'padding': '8px',
                 'fontFamily': BASE_FONT,
                 'fontSize': '14px',
-                'color': '#34495e'
+                'color': "#416181"
             },
             style_header={
                 'backgroundColor': PRIMARY_COLOR,
-                'color': 'white',
+                'color': "#000000",
                 'fontWeight': '450',
             },
             style_data_conditional=[
@@ -219,28 +255,35 @@ def update_region_course_options(selected_uni, fee_range):
 def update_graphs_and_table(selected_uni, selected_regions, selected_courses, selected_majors, fee_range):
     filtered = df.copy()
 
+    # กรองมหาวิทยาลัย ถ้ามีการเลือก
     if selected_uni:
         filtered = filtered[filtered['มหาวิทยาลัย'] == selected_uni]
 
+    # กรองภูมิภาค ถ้ามีการเลือก และแปลงให้เป็น list เสมอ
     if selected_regions:
         if isinstance(selected_regions, str):
             selected_regions = [selected_regions]
         filtered = filtered[filtered['ภาค'].isin(selected_regions)]
 
+    # กรองหลักสูตร ถ้ามีการเลือก และแปลงเป็น list เสมอ
     if selected_courses:
         if isinstance(selected_courses, str):
             selected_courses = [selected_courses]
         filtered = filtered[filtered['หลักสูตร'].isin(selected_courses)]
 
+    # กรองชื่อสาขา ถ้ามีการเลือก และแปลงเป็น list เสมอ
     if selected_majors:
         if isinstance(selected_majors, str):
             selected_majors = [selected_majors]
         filtered = filtered[filtered['ชื่อสาขา'].isin(selected_majors)]
 
+    # กรองช่วงค่าใช้จ่าย
+    # เช็คกรณีค่าใช้จ่ายเป็นตัวเลขจริง (int/float)
     filtered = filtered[
         (filtered['ค่าใช้จ่าย'] >= fee_range[0]) & (filtered['ค่าใช้จ่าย'] <= fee_range[1])
     ]
 
+    # สร้างกราฟวงกลมของภูมิภาค
     if not filtered.empty:
         region_pie = px.pie(
             filtered,
@@ -252,6 +295,7 @@ def update_graphs_and_table(selected_uni, selected_regions, selected_courses, se
     else:
         region_pie = px.pie(title="ไม่มีข้อมูล")
 
+    # สร้างกราฟแท่งนับจำนวนหลักสูตร
     type_counts = filtered['หลักสูตร'].value_counts().reset_index()
     type_counts.columns = ['หลักสูตร', 'จำนวน']
 
@@ -267,9 +311,11 @@ def update_graphs_and_table(selected_uni, selected_regions, selected_courses, se
     else:
         type_bar = px.bar(title="ไม่มีข้อมูล")
 
+    # ส่งข้อมูลตาราง
     table_data = filtered.to_dict('records')
 
     return region_pie, type_bar, table_data
+
 
 
 if __name__ == '__main__':
