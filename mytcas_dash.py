@@ -4,7 +4,7 @@ import pandas as pd
 import plotly.express as px
 
 # โหลดไฟล์ Excel
-df = pd.read_excel("AJ_Thana\coe_and_aie_with_major.xlsx")
+df = pd.read_excel("AJ_Thana\myTCAS\mytcas-dashboard\coe_and_aie_with_major.xlsx")
 
 # เพิ่มคอลัมน์ชื่อสาขา
 df["ชื่อสาขา"] = df["ชื่อหลักสูตร"].apply(
@@ -15,7 +15,7 @@ df["ชื่อสาขา"] = df["ชื่อหลักสูตร"].appl
 min_fee, max_fee = df['ค่าใช้จ่าย'].min(), df['ค่าใช้จ่าย'].max()
 
 app = dash.Dash(__name__)
-app.title = "Dashboard หลักสูตรมหาวิทยาลัย"
+app.title = "MyTCAS Dashboard"
 
 # ใส่ Google Font
 app.css.append_css({
@@ -24,16 +24,18 @@ app.css.append_css({
 
 # Style constants
 BASE_FONT = "'Poppins', sans-serif"
-PRIMARY_COLOR = "#083A17"
-ACCENT_COLOR = "#ff7f0e"
-BG_GRADIENT = "linear-gradient(135deg, #e0f7fa 0%, #80deea 100%)"
+PRIMARY_COLOR = "#001439"
+ACCENT_COLOR = "#EBF49A"
+BG_GRADIENT = "linear-gradient(135deg, #EBF49A 0%, #80deea 100%)"
 
 LABEL_STYLE = {
-    'fontWeight': '600',
+    'fontWeight': '450',
     'marginBottom': '8px',
     'fontSize': '16px',
     'color': PRIMARY_COLOR,
     'fontFamily': BASE_FONT,
+    # 'marginTop': '10px',
+    # 'marginBottom': '10px',
 }
 
 DROPDOWN_STYLE = {
@@ -41,12 +43,14 @@ DROPDOWN_STYLE = {
     'boxShadow': '0 2px 5px rgba(0,0,0,0.15)',
     'transition': 'box-shadow 0.3s ease',
     'fontFamily': BASE_FONT,
+    'marginTop': '6px',
+    'marginBottom': '20px',
 }
 
 H2_STYLE = {
     'textAlign': 'center',
     'color': PRIMARY_COLOR,
-    'fontWeight': '700',
+    'fontWeight': '600',
     'fontFamily': BASE_FONT,
     'fontSize': '2.5rem',
     'userSelect': 'none',
@@ -57,7 +61,7 @@ H2_STYLE = {
 # Layout
 app.layout = html.Div([
     html.Div([
-        html.H1("🎓 Dashboard หลักสูตรมหาวิทยาลัย", style=H2_STYLE)
+        html.H1("MyTCAS Dashboard", style=H2_STYLE)
     ], style={
         'background': BG_GRADIENT,
         'padding': '30px 0',
@@ -67,18 +71,18 @@ app.layout = html.Div([
 
     html.Div([
         html.Div([
-            html.Label("🏫 เลือกมหาวิทยาลัย:", style=LABEL_STYLE),
+            html.Label("มหาวิทยาลัย:", style=LABEL_STYLE),
             dcc.Dropdown(
                 id='university-dropdown',
                 options=[{'label': u, 'value': u} for u in sorted(df['มหาวิทยาลัย'].unique())],
-                placeholder="เลือกมหาวิทยาลัย (หรือเว้นไว้)...",
+                placeholder="เลือกมหาวิทยาลัย",
                 clearable=True,
                 style=DROPDOWN_STYLE,
             ),
-            html.Label("📍 เลือกภาค:", style={**LABEL_STYLE, 'marginTop': '24px'}),
+            html.Label("ภูมิภาค:", style={**LABEL_STYLE, 'marginTop': '24px'}),
             dcc.Dropdown(
                 id='region-dropdown',
-                placeholder="เลือกภาค (หรือเว้นไว้)...",
+                placeholder="เลือกภูมิภาค",
                 multi=True,
                 clearable=True,
                 style=DROPDOWN_STYLE,
@@ -86,19 +90,19 @@ app.layout = html.Div([
         ], style={'width': '48%', 'display': 'inline-block', 'verticalAlign': 'top'}),
 
         html.Div([
-            html.Label("🎓 เลือกหลักสูตร:", style=LABEL_STYLE),
+            html.Label("หลักสูตร (ภาษาไทย/นานาชาติ):", style=LABEL_STYLE),
             dcc.Dropdown(
                 id='course-dropdown',
-                placeholder="เลือกหลักสูตร (หรือเว้นไว้)...",
+                placeholder="เลือกหลักสูตร",
                 multi=True,
                 clearable=True,
                 style=DROPDOWN_STYLE,
             ),
-            html.Label("👨‍💻 เลือกชื่อสาขา:", style={**LABEL_STYLE, 'marginTop': '24px'}),
+            html.Label("หลักสูตร (CoE/AIE):", style={**LABEL_STYLE, 'marginTop': '24px'}),
             dcc.Dropdown(
                 id='major-dropdown',
                 options=[{'label': m, 'value': m} for m in sorted(df['ชื่อสาขา'].unique())],
-                placeholder="เลือกชื่อสาขา (หรือเว้นไว้)...",
+                placeholder="เลือกหลักสูตร",
                 multi=True,
                 clearable=True,
                 style=DROPDOWN_STYLE,
@@ -107,7 +111,7 @@ app.layout = html.Div([
     ], style={'width': '90%', 'margin': '0 auto', 'display': 'flex', 'justifyContent': 'space-between'}),
 
     html.Div([
-        html.Label("💰 เลือกช่วงค่าใช้จ่าย (บาท):", style=LABEL_STYLE),
+        html.Label("ค่าใช้จ่าย (บาท):", style=LABEL_STYLE),
         dcc.RangeSlider(
             id='fee-slider',
             min=min_fee, max=max_fee,
@@ -117,7 +121,7 @@ app.layout = html.Div([
             tooltip={"placement": "bottom"},
             updatemode='mouseup',
         ),
-    ], style={'width': '90%', 'margin': '40px auto 60px auto'}),
+    ], style={'width': '90%', 'margin': '10px auto 40px auto'}),
 
     html.Div([
         dcc.Graph(id='region-pie', style={
@@ -155,7 +159,7 @@ app.layout = html.Div([
             style_header={
                 'backgroundColor': PRIMARY_COLOR,
                 'color': 'white',
-                'fontWeight': '600',
+                'fontWeight': '450',
             },
             style_data_conditional=[
                 {'if': {'row_index': 'odd'}, 'backgroundColor': '#ecf0f1'}
@@ -241,7 +245,7 @@ def update_graphs_and_table(selected_uni, selected_regions, selected_courses, se
         region_pie = px.pie(
             filtered,
             names='ภาค',
-            title="📍 สัดส่วนหลักสูตรตามภาคของประเทศ",
+            title="สัดส่วนหลักสูตรตามภาคของประเทศ",
             hole=0.4,
             color_discrete_sequence=px.colors.sequential.Plasma_r
         )
@@ -256,7 +260,7 @@ def update_graphs_and_table(selected_uni, selected_regions, selected_courses, se
             type_counts,
             x='หลักสูตร', y='จำนวน',
             labels={'หลักสูตร': 'ประเภทหลักสูตร', 'จำนวน': 'จำนวน'},
-            title="🏷️ จำนวนหลักสูตรทั่วไป vs. นานาชาติ",
+            title="จำนวนหลักสูตรทั่วไปกับนานาชาติ",
             color='หลักสูตร',
             color_discrete_sequence=px.colors.qualitative.Pastel
         )
