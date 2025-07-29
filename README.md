@@ -37,16 +37,16 @@ MyTCAS Dashboard is a professional web application for visualizing and comparing
 ## Example Usage
 
 **Filter by university, region, program, and fee range:**
-![1753806190952](image/README/1753806190952.png)
+![](./image/README/1753806190952.png)
 
 **Filter by tuition fee range:**
-![1753806247644](image/README/1753806247644.png)
+![](./image/README/1753806247644.png)
 
-## Dashboard 
+## Dashboard
 
-![1753805959418](image/README/1753805959418.png)
-![1753806069086](image/README/1753806069086.png)
-![1753806113038](image/README/1753806113038.png)
+![](./image/README/1753805959418.png)
+![](./image/README/1753806069086.png)
+![](./image/README/1753806113038.png)
 
 ## Credits & Data Source
 
